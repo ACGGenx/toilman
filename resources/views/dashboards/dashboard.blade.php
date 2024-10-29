@@ -110,9 +110,9 @@
                                     <div class="progress-widget">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 16 16">
                                             <circle cx="8" cy="8" r="8" fill="#3a57e824" />
-                                            <path d="M10.7 5.3H5.3c-.7 0-1.3.6-1.3 1.3v2.7c0 .7.6 1.3 1.3 1.3h5.3c.7 0 1.3-.6 1.3-1.3V6.7c0-.7-.6-1.4-1.2-1.4z" fill="#3a57e8" />
-                                            <path d="M9.3 7.3h-2.7M9.3 8.7h-2.7" fill="none" stroke="#fff" stroke-width="1" stroke-linecap="round" />
-                                            <path d="M12 6.7v4c0 .7-.6 1.3-1.3 1.3H5.3" fill="none" stroke="#3a57e8" stroke-width="1" />
+                                            <rect x="2" y="4" width="6" height="8" fill="#3a57e8" rx="1" opacity="0.8" />
+                                            <rect x="5" y="4" width="6" height="8" fill="#3a57e8" rx="1" opacity="0.6" />
+                                            <rect x="8" y="4" width="6" height="8" fill="#3a57e8" rx="1" opacity="0.4" />
                                         </svg>
                                         <div class="progress-detail">
                                             <p class="mb-2">Total Sliders</p>
@@ -131,9 +131,13 @@
                                     <div class="progress-widget">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 16 16">
                                             <circle cx="8" cy="8" r="8" fill="#3a57e824" />
-                                            <path d="M10.7 5.3H5.3c-.7 0-1.3.6-1.3 1.3v2.7c0 .7.6 1.3 1.3 1.3h5.3c.7 0 1.3-.6 1.3-1.3V6.7c0-.7-.6-1.4-1.2-1.4z" fill="#3a57e8" />
-                                            <path d="M9.3 7.3h-2.7M9.3 8.7h-2.7" fill="none" stroke="#fff" stroke-width="1" stroke-linecap="round" />
-                                            <path d="M12 6.7v4c0 .7-.6 1.3-1.3 1.3H5.3" fill="none" stroke="#3a57e8" stroke-width="1" />
+                                            <!-- Top bar -->
+                                            <path d="M3 3.5C3 3.22386 3.22386 3 3.5 3H12.5C12.7761 3 13 3.22386 13 3.5V5H3V3.5Z" fill="#3a57e8" />
+                                            <!-- Window dots -->
+                                            <circle cx="4.5" cy="4" r="0.5" fill="#ffffff" />
+                                            <circle cx="5.8" cy="4" r="0.5" fill="#ffffff" />
+                                            <!-- Main content area -->
+                                            <rect x="3" y="5.5" width="10" height="7.5" rx="1" ry="1" stroke="#3a57e8" stroke-width="1.2" fill="none" />
                                         </svg>
                                         <div class="progress-detail">
                                             <p class="mb-2">Total Pages</p>
@@ -153,9 +157,15 @@
                                     <div class="progress-widget">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 16 16">
                                             <circle cx="8" cy="8" r="8" fill="#3a57e824" />
-                                            <path d="M10.7 5.3H5.3c-.7 0-1.3.6-1.3 1.3v2.7c0 .7.6 1.3 1.3 1.3h5.3c.7 0 1.3-.6 1.3-1.3V6.7c0-.7-.6-1.4-1.2-1.4z" fill="#3a57e8" />
-                                            <path d="M9.3 7.3h-2.7M9.3 8.7h-2.7" fill="none" stroke="#fff" stroke-width="1" stroke-linecap="round" />
-                                            <path d="M12 6.7v4c0 .7-.6 1.3-1.3 1.3H5.3" fill="none" stroke="#3a57e8" stroke-width="1" />
+                                            <!-- Main user -->
+                                            <circle cx="8" cy="6" r="2" fill="#3a57e8" />
+                                            <path d="M5 12.5c0-1.7 1.3-3 3-3s3 1.3 3 3" fill="#3a57e8" />
+                                            <!-- Left user -->
+                                            <circle cx="4.5" cy="7" r="1.5" fill="#3a57e8" opacity="0.8" />
+                                            <path d="M2 13c0-1.4 1-2.5 2.5-2.5s2.5 1.1 2.5 2.5" fill="#3a57e8" opacity="0.8" />
+                                            <!-- Right user -->
+                                            <circle cx="11.5" cy="7" r="1.5" fill="#3a57e8" opacity="0.8" />
+                                            <path d="M9 13c0-1.4 1-2.5 2.5-2.5s2.5 1.1 2.5 2.5" fill="#3a57e8" opacity="0.8" />
                                         </svg>
                                         <div class="progress-detail">
                                             <p class="mb-2">Total Active Users</p>
@@ -171,9 +181,17 @@
                                     <div class="progress-widget">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 16 16">
                                             <circle cx="8" cy="8" r="8" fill="#3a57e824" />
-                                            <path d="M10.7 5.3H5.3c-.7 0-1.3.6-1.3 1.3v2.7c0 .7.6 1.3 1.3 1.3h5.3c.7 0 1.3-.6 1.3-1.3V6.7c0-.7-.6-1.4-1.2-1.4z" fill="#3a57e8" />
-                                            <path d="M9.3 7.3h-2.7M9.3 8.7h-2.7" fill="none" stroke="#fff" stroke-width="1" stroke-linecap="round" />
-                                            <path d="M12 6.7v4c0 .7-.6 1.3-1.3 1.3H5.3" fill="none" stroke="#3a57e8" stroke-width="1" />
+                                            <!-- Main user -->
+                                            <circle cx="8" cy="6" r="2" fill="#3a57e8" opacity="0.5" />
+                                            <path d="M5 12.5c0-1.7 1.3-3 3-3s3 1.3 3 3" fill="#3a57e8" opacity="0.5" />
+                                            <!-- Left user -->
+                                            <circle cx="4.5" cy="7" r="1.5" fill="#3a57e8" opacity="0.4" />
+                                            <path d="M2 13c0-1.4 1-2.5 2.5-2.5s2.5 1.1 2.5 2.5" fill="#3a57e8" opacity="0.4" />
+                                            <!-- Right user -->
+                                            <circle cx="11.5" cy="7" r="1.5" fill="#3a57e8" opacity="0.4" />
+                                            <path d="M9 13c0-1.4 1-2.5 2.5-2.5s2.5 1.1 2.5 2.5" fill="#3a57e8" opacity="0.4" />
+                                            <!-- Inactive indicator (diagonal line) -->
+                                            <line x1="3" y1="3" x2="13" y2="13" stroke="#3a57e8" stroke-width="1.5" />
                                         </svg>
                                         <div class="progress-detail">
                                             <p class="mb-2">Total In-active Users</p>
