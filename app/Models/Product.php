@@ -13,7 +13,6 @@ class Product extends Model
         'name',
         'description',
         'slug',
-        'category_id',
         'meta_title',
         'meta_description',
         'custom_box',
@@ -21,6 +20,7 @@ class Product extends Model
         'price',
         'sale_price',
     ];
+
     public function primaryImage()
     {
         return $this->hasOne(ProductImage::class)->where('is_primary', true);
@@ -31,9 +31,10 @@ class Product extends Model
         return $this->hasMany(ProductImage::class);
     }
 
-    public function category()
+    public function categories()
     {
-        return $this->belongsTo(Category::class);
+        return $this->belongsToMany(Category::class, 'category_product')
+                    ->withTimestamps();
     }
 
     public function similarProducts()

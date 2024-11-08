@@ -30,7 +30,7 @@ class SliderController extends Controller
     {
         if ($this->isView) {
             $sliders = Slider::with(['images' => function ($query) {
-                $query->orderBy('order', 'asc');  // Order images by 'order' field in ascending order
+                $query->where('is_active', 1)->orderBy('order', 'asc');  // Order images by 'order' field in ascending order
             }])->get();
             return view('sliders.index', [
                 'sliders' => $sliders,
@@ -200,6 +200,39 @@ class SliderController extends Controller
             return response()->json([
                 'images' => $uploadedImages
             ]);
+        }
+        return redirect()->route('dashboard')->with('error', 'You do not have permission to edit sliders.');
+    }
+    public function updateImageStatus(Request $request, $sliderId)
+    {
+        if ($this->isEdit) {
+            $imageId = $request->input('image_id');
+            $isActive = $request->input('is_active');
+
+            $image = SliderImage::find($imageId);
+            if ($image) {
+                $image->update(['is_active' => $isActive ? 1 : 0]);
+                return response()->json(['status' => 'success']);
+            }
+
+            return response()->json(['status' => 'error'], 404);
+        }
+        return redirect()->route('dashboard')->with('error', 'You do not have permission to edit sliders.');
+    }
+
+    public function updateImageUrl(Request $request, $sliderId)
+    {
+        if ($this->isEdit) {
+            $imageId = $request->input('image_id');
+            $url = $request->input('url');
+
+            $image = SliderImage::find($imageId);
+            if ($image) {
+                $image->update(['url' => $url]);
+                return response()->json(['status' => 'success']);
+            }
+
+            return response()->json(['status' => 'error'], 404);
         }
         return redirect()->route('dashboard')->with('error', 'You do not have permission to edit sliders.');
     }

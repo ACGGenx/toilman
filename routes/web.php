@@ -60,20 +60,29 @@ Route::group(['middleware' => ['auth', 'prevent-back-history']], function () {
     Route::post('/user/change-status', [UserController::class, 'changeStatus'])->name('user.change-status');
     Route::resource('categories', CategoryController::class);
     Route::post('/categories/change-status', [CategoryController::class, 'changeStatus'])->name('categories.change-status');
+    Route::post('/categories/upload-image', [CategoryController::class, 'uploadImage'])->name('upload.image');
+
     Route::resource('products', ProductController::class);
     Route::post('/product/delete-image', [ProductController::class, 'deleteImage'])->name('product.delete-image');
     Route::post('/product/set-primary-image', [ProductController::class, 'setAsPrimary'])->name('product.set-primary-image');
     Route::post('/product/change-status', [ProductController::class, 'changeStatus'])->name('product.change-status');
+    Route::post('/product/upload-image', [ProductController::class, 'uploadImage'])->name('upload.image');
+    Route::post('/product/upload-product-image', [ProductController::class, 'uploadProductImage'])->name('product.uploadProductImage');
+
     Route::get('/check-slug', [ProductController::class, 'checkSlug'])->name('check-slug');
     Route::get('/check-slug-cat', [CategoryController::class, 'checkSlug'])->name('check-slug-cat');
     Route::get('/enquiries', [EnquiryController::class, 'listEnquiries'])->name('enquiries.list');
     Route::post('/enquiries/download', [EnquiryController::class, 'downloadCSV'])->name('enquiries.download');
     Route::resource('pages', PageManagementController::class);
     Route::post('/pages/change-status', [PageManagementController::class, 'changeStatus'])->name('page.change-status');
+    Route::post('/pages/upload-image', [PageManagementController::class, 'uploadImage'])->name('upload.image');
+    Route::post('/pages/set-default', [PageManagementController::class, 'setDefault'])->name('pages.set-default');
     Route::resource('sliders', SliderController::class);
     Route::post('/sliders/{slider}/update-image-order', [SliderController::class, 'updateImageOrder'])->name('sliders.updateImageOrder');
     Route::post('/sliders/{slider}/remove-image', [SliderController::class, 'removeImage'])->name('sliders.removeImage');
     Route::post('/sliders/{slider}/upload-images', [SliderController::class, 'uploadImages'])->name('sliders.uploadImages');
+    Route::post('sliders/{slider}/update-image-status', [SliderController::class, 'updateImageStatus'])->name('sliders.updateImageStatus');
+    Route::post('sliders/{slider}/update-image-url', [SliderController::class, 'updateImageUrl'])->name('sliders.updateImageUrl');
 });
 
 
@@ -84,4 +93,3 @@ Route::post('/enquiry/submit-bulk', [EnquiryController::class, 'submitBulkEnquir
 Route::get('/product/{slug}', [ProductController::class, 'show'])->name('products.show');
 Route::get('privacy-policy', [HomeController::class, 'privacypolicy'])->name('pages.privacy-policy');
 Route::get('terms-of-use', [HomeController::class, 'termsofuse'])->name('pages.term-of-use');
-

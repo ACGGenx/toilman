@@ -617,13 +617,21 @@ body.uikit .btn-download {
 
 .image-stack img:nth-child(2) {
     position: absolute;
-    left: 12px;
+    left: 20px;
     z-index: 1;
+}
+
+.table thead tr th {
+    text-transform: capitalize;
+}
+
+span.badge.bg-gray {
+    background: #5a5a5a;
 }
 
 .more-images {
     position: absolute;
-    left: 20px;
+    left: 40px;
     top: 0;
     width: 32px;
     height: 32px;
@@ -788,31 +796,72 @@ textarea#seo_tags {
     border: 2px solid #1a0000;
 } */
 
-li.img-wrapper{
+li.img-wrapper {
     position: relative;
     display: inline-block;
 }
+
 .img-slider {
-    width: 100%; /* or any appropriate value */
+    width: 100%;
+    /* or any appropriate value */
 }
+
 .img-slider .slick-slide {
     box-sizing: border-box;
 }
+
 .slick-next:before {
     content: '→';
     opacity: 1 !important;
     color: black !important;
 }
+
 .slick-prev:before {
     content: '←';
     opacity: 1 !important;
     color: black !important;
 }
+
 .card-body.dashboard-card {
     flex: 1 1 auto;
     padding: 0.5rem 0.5rem;
 }
-.swiper-slide.card.card-slide{
+
+.swiper-slide.card.card-slide {
     width: 260px;
     margin-right: 8px;
+}
+
+select.form-control option.child-option {
+    padding-left: 20px;
+}
+
+/* Remove padding when the option is selected */
+select.form-control:focus>option.child-option,
+select.form-control>option:checked {
+    padding-left: 0;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 35px !important;
+}
+
+ul#sortable-images li {
+    border: 1px solid rgb(229, 229, 229);
+    margin: 5px;
+    padding: 10px;
+}
+.save-icon{
+    padding: 4px !important;
+    border: 1px solid #eeeeee;
+}
+.save-url-btn .spinner-border-sm {
+    width: 20px;
+    height: 20px;
+}
+
+.save-url-btn span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }

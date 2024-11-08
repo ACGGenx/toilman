@@ -25,11 +25,11 @@
                             <table id="basic-table" class="table table-striped mb-0" role="grid">
                                 <thead>
                                     <tr>
-                                        <th style="width: 10%;">Name</th>
-                                        <th style="width: 10%;">Category</th>
-                                        <th style="width: 40%;">Description</th>
+                                        <th style="width: 15%;">Name</th>
+                                        <th style="width: 40%;">Category</th>
+                                        <!-- <th style="width: 40%;">Description</th> -->
                                         <th style="width: 10%;">Price</th>
-                                        <th style="width: 15%;">Images</th>
+                                        <th style="width: 20%;">Images</th>
 
                                         @if($isEdit || $isDelete)
                                         <th style="width: 15%;" class="text-end">Action</th>
@@ -40,10 +40,40 @@
                                     @foreach ($products as $product)
                                     <tr>
                                         <td>{{ $product->name }}</td>
-                                        <td>{{ isset($product->category) ? $product->category->name : '' }}</td>
-                                        <td class="desc-text">
-                                            {!! \Illuminate\Support\Str::limit($product->description, 100, '...') !!}
+                                        <td>
+                                            <div class="badge-container">
+                                                @php
+                                                $categories = $product->categories;
+                                                $totalCategories = $categories->count();
+                                                $displayCategories = $categories->take(5);
+                                                @endphp
+
+                                                @foreach($displayCategories as $category)
+                                                <span class="badge bg-primary">{{ $category->name }}</span>
+                                                @endforeach
+
+                                                @if($totalCategories > 5)
+
+                                                @if($isEdit)
+                                                <a href="{{ route('products.edit', $product->id) }}">
+                                                    <span class="badge bg-secondary" title="{{ $categories->skip(5)->pluck('name')->implode(', ') }}">
+                                                        +{{ $totalCategories - 5 }} more...
+                                                    </span></a>
+                                                @else
+                                                <span class="badge bg-secondary" title="{{ $categories->skip(5)->pluck('name')->implode(', ') }}">
+                                                    +{{ $totalCategories - 5 }} more...
+                                                </span>
+                                                @endif
+                                                @endif
+
+                                                @if($totalCategories === 0)
+                                                <span class="text-muted">No category</span>
+                                                @endif
+                                            </div>
                                         </td>
+                                        <!-- <td class="desc-text">
+                                            {!! \Illuminate\Support\Str::limit($product->description, 100, '...') !!}
+                                        </td> -->
                                         <td>
                                             @if(isset($product->sale_price) && $product->sale_price < $product->price)
                                                 <span>{{ number_format($product->sale_price, 2) }}<sup>{{number_format((($product->price-$product->sale_price)/$product->price*100),0)}}% off</sup></span>
@@ -89,7 +119,7 @@
                                             <a class="btn btn-sm btn-danger delete-category-btn" data-id="{{ $product->id }}"
                                                 data-bs-toggle="modal"
                                                 data-bs-target="#deleteModal" data-bs-toggle="tooltip" data-bs-placement="top" href="#" aria-label="Delete" data-bs-original-title="Delete" style="padding: 0.125rem 0.25rem;">
-                                                <span class="btn-inner">
+                                                <span class="btn-inner" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete">
                                                     <svg class="icon-20" width="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor">
                                                         <path d="M19.3248 9.46826C19.3248 9.46826 18.7818 16.2033 18.4668 19.0403C18.3168 20.3953 17.4798 21.1893 16.1088 21.2143C13.4998 21.2613 10.8878 21.2643 8.27979 21.2093C6.96079 21.1823 6.13779 20.3783 5.99079 19.0473C5.67379 16.1853 5.13379 9.46826 5.13379 9.46826" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
                                                         <path d="M20.708 6.23975H3.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>

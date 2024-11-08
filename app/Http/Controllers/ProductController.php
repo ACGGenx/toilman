@@ -19,7 +19,6 @@ class ProductController extends Controller
 
     public function __construct()
     {
-        // Ensure auth()->user() can be accessed
         $this->middleware(function ($request, $next) {
             $user = auth()->user();
 
@@ -30,49 +29,45 @@ class ProductController extends Controller
             return $next($request);
         });
     }
+
     public function index()
     {
         if ($this->isView) {
-            // Eager load the images and category relationships
-            $products = Product::whereNotNull('category_id')->get();
+            $products = Product::with(['categories', 'images' => function ($query) {
+                $query->orderBy('is_primary', 'desc');
+            }])
+                ->latest()
+                ->get();
             foreach ($products as $product) {
                 // Fetch the images related to the product
                 $product->images = ProductImage::where('product_id', $product->id)->get();
             }
+            $categories = Category::all();
 
-            $categories = Category::all(); // Fetch categories for filtering or displaying if required
-            return view('products.index', ['products' => $products,
-            'categories' => $categories,
-            'isEdit' => $this->isEdit,
-            'isDelete' => $this->isDelete]);
+            return view('products.index', [
+                'products' => $products,
+                'categories' => $categories,
+                'isEdit' => $this->isEdit,
+                'isDelete' => $this->isDelete
+            ]);
         }
         return redirect()->route('dashboard')->with('error', 'You do not have permission to view products.');
     }
+
     public function create()
     {
         if ($this->isEdit) {
-            $categories = Category::all();  // Fetch categories for the dropdown
-            $products = Product::all();     // For selecting similar products
-            $product = [];
+            $categories = Category::all();
+            $products = Product::all();
             return view('products.create_edit', compact('categories', 'products'));
         }
         return redirect()->route('dashboard')->with('error', 'You do not have permission to add products.');
     }
+
     public function store(Request $request)
     {
         if ($this->isEdit) {
-            // dd($request->description);
-            $request->validate([
-                'name' => 'required|string|max:255',
-                'price' => 'required|numeric|min:0',
-                'sale_price' => 'nullable|numeric|min:0',
-                'description' => 'required',
-                'images.*' => 'image|mimes:jpeg,png,jpg,gif',
-                'category_id' => 'required|exists:categories,id',
-                'meta_title' => 'nullable|string|max:255',
-                'meta_description' => 'nullable|string',
-                'custom_box' => 'nullable',
-            ]);
+            $validatedData = $request->validate($this->getValidationRules($request));
 
             // Generate slug
             $slug = Str::slug($request->name);
@@ -85,30 +80,29 @@ class ProductController extends Controller
 
             // Create the product
             $product = Product::create([
-                'name' => $request->name,
-                'description' => $request->description,
-                'slug' => $slug,
-                'category_id' => $request->category_id,
-                'meta_title' => $request->meta_title,
-                'meta_description' => $request->meta_description,
-                'custom_box' => $request->custom_box,
+                'name' => $validatedData['name'],
+                'description' => $validatedData['description'],
+                'slug' => $validatedData['slug'],
+                'meta_title' => $validatedData['meta_title'],
+                'meta_description' => $validatedData['meta_description'],
+                'custom_box' => $validatedData['custom_box'],
                 'status' => $request->status ?? true,
-                'price' => $request->price,
-                'sale_price' => $request->sale_price,
+                'price' => $validatedData['price'],
+                'sale_price' => $validatedData['sale_price'],
             ]);
+
+            // Sync categories
+            $product->categories()->sync($request->category_id);
 
             // Handle image upload
             if ($request->hasFile('images')) {
                 $isFirstImage = true;
                 foreach ($request->file('images') as $image) {
-                    // Store image
                     $imagePath = $image->store('products', 'public');
-
-                    // Save image path to the product_images table
                     ProductImage::create([
                         'product_id' => $product->id,
                         'image_path' => $imagePath,
-                        'is_primary' => $isFirstImage ? true : false,
+                        'is_primary' => $isFirstImage,
                     ]);
                     $isFirstImage = false;
                 }
@@ -124,17 +118,21 @@ class ProductController extends Controller
         return redirect()->route('dashboard')->with('error', 'You do not have permission to edit products.');
     }
 
-
     public function edit(Product $product)
     {
         if ($this->isEdit) {
             $categories = Category::all();
             $products = Product::where('id', '!=', $product->id)->get();
+            $product->load('categories'); // Make sure categories are loaded
+
             $product->images = ProductImage::where('product_id', $product->id)
                 ->orderBy('is_primary', 'desc')
                 ->get();
 
-            return view('products.create_edit', compact('product', 'categories', 'products'));
+            // Get array of selected category IDs
+            $selectedCategories = $product->categories->pluck('id')->toArray();
+
+            return view('products.create_edit', compact('product', 'categories', 'products', 'selectedCategories'));
         }
         return redirect()->route('dashboard')->with('error', 'You do not have permission to edit products.');
     }
@@ -142,47 +140,37 @@ class ProductController extends Controller
     public function update(Request $request, Product $product)
     {
         if ($this->isEdit) {
-            $request->validate([
-                'name' => 'required|string|max:255',
-                'price' => 'required|numeric|min:0',
-                'sale_price' => 'nullable|numeric|min:0',
-                'description' => 'required',
-                'images.*' => 'image|mimes:jpeg,png,jpg,gif',
-                'category_id' => 'required|exists:categories,id', // Validate category
-                'meta_title' => 'nullable|string|max:255',
-                'meta_description' => 'nullable|string',
-                'custom_box' => 'nullable',
-            ]);
-
+            $validatedData = $request->validate($this->getValidationRules($request, $product->id));
             $slug = Str::slug($request->name);
+
             // Update product details
             $product->update([
-                'name' => $request->name,
-                'description' => $request->description,
-                'slug' => $slug,
-                'category_id' => $request->category_id,
-                'meta_title' => $request->meta_title,
-                'meta_description' => $request->meta_description,
-                'custom_box' => $request->custom_box,
+                'name' => $validatedData['name'],
+                'description' => $validatedData['description'],
+                'slug' => Str::slug($request->name),
+                'meta_title' => $validatedData['meta_title'],
+                'meta_description' => $validatedData['meta_description'],
+                'custom_box' => $validatedData['custom_box'],
                 'status' => $request->status ?? true,
-                'price' => $request->price,
-                'sale_price' => $request->sale_price,
+                'price' => $validatedData['price'],
+                'sale_price' => $validatedData['sale_price'],
             ]);
 
+
+            // Sync categories
+            $product->categories()->sync($request->category_id);
+
             // Handle image upload
-            if ($request->hasFile('images')) {
-                foreach ($request->file('images') as $image) {
-                    $imagePath = $image->store('products', 'public');
-
-                    $isPrimary = $request->input('primary_image') == $image->getClientOriginalName();
-
-                    ProductImage::create([
-                        'product_id' => $product->id,
-                        'image_path' => $imagePath,
-                        'is_primary' => $isPrimary,
-                    ]);
-                }
-            }
+            // if ($request->hasFile('images')) {
+            //     foreach ($request->file('images') as $image) {
+            //         $imagePath = $image->store('products', 'public');
+            //         ProductImage::create([
+            //             'product_id' => $product->id,
+            //             'image_path' => $imagePath,
+            //             'is_primary' => false,
+            //         ]);
+            //     }
+            // }
 
             if ($request->filled('primary_image_id')) {
                 ProductImage::where('product_id', $product->id)
@@ -205,6 +193,7 @@ class ProductController extends Controller
     public function destroy(Product $product)
     {
         if ($this->isDelete) {
+            $product->categories()->detach(); // Remove category relationships
             $product->delete();
             return redirect()->route('products.index')->with('success', 'Product deleted successfully');
         }
@@ -213,15 +202,24 @@ class ProductController extends Controller
 
     public function toggleStatus(Product $product)
     {
-        $product->update(['status' => !$product->status]);
-        return redirect()->route('products.index');
+        if ($this->isEdit) {
+            $product->update(['status' => !$product->status]);
+            return redirect()->route('products.index');
+        }
+        return redirect()->route('dashboard')->with('error', 'You do not have permission to edit products.');
     }
 
     public function checkSlug(Request $request)
     {
         if ($this->isEdit) {
             $slug = $request->get('slug');
-            $exists = Product::where('slug', $slug)->exists();
+            $productId = $request->get('product_id', 0);
+
+            $exists = Product::where('slug', $slug)
+                ->when($productId, function ($query) use ($productId) {
+                    return $query->where('id', '!=', $productId);
+                })
+                ->exists();
 
             return response()->json(['exists' => $exists]);
         }
@@ -232,42 +230,32 @@ class ProductController extends Controller
     {
         if ($this->isDelete) {
             $image = ProductImage::findOrFail($request->image_id);
-            // Delete the image file from storage
-            if (\Storage::exists('public/' . $image->image_path)) {
-                \Storage::delete('public/' . $image->image_path);
+            if (Storage::exists('public/' . $image->image_path)) {
+                Storage::delete('public/' . $image->image_path);
             }
-            // Delete the image record from the database
             $image->delete();
 
             return response()->json(['success' => true, 'message' => 'Image deleted successfully']);
         }
         return redirect()->route('dashboard')->with('error', 'You do not have permission to delete products.');
     }
+
     public function setAsPrimary(Request $request)
     {
         if ($this->isEdit) {
-            // Validate the incoming request to ensure 'image_id' is present
             $request->validate([
                 'image_id' => 'required|exists:product_images,id',
             ]);
 
-            // Find the image that needs to be set as primary
             $image = ProductImage::findOrFail($request->input('image_id'));
-
-            // Get the product ID from the image (since the image belongs to a product)
-            $productId = $image->product_id;
-
-            // Mark all other images of this product as non-primary
-            ProductImage::where('product_id', $productId)->update(['is_primary' => false]);
-
-            // Set the selected image as the primary image
-            $image->is_primary = true;
-            $image->save();
+            ProductImage::where('product_id', $image->product_id)->update(['is_primary' => false]);
+            $image->update(['is_primary' => true]);
 
             return response()->json(['success' => true, 'message' => 'Primary image has been updated.']);
         }
         return redirect()->route('dashboard')->with('error', 'You do not have permission to edit products.');
     }
+
     public function changeStatus(Request $request)
     {
         if ($this->isEdit) {
@@ -276,12 +264,9 @@ class ProductController extends Controller
             ]);
 
             $product = Product::findOrFail($request->input('product_id'));
-
-            // Update the product status
             $product->status = !$product->status;
             $product->save();
 
-            // Return a response (can be JSON if used in an AJAX request)
             return response()->json([
                 'success' => true,
                 'message' => 'Product status has been updated successfully!',
@@ -295,15 +280,101 @@ class ProductController extends Controller
     {
         if ($this->isView) {
             $product = Product::where('slug', $slug)
-                ->where('status', 1)  // Assuming 1 means active
-                ->with('images')  // Assuming you have an images relationship
+                ->where('status', 1)
+                ->with(['images', 'categories'])
                 ->firstOrFail();
 
-            return view('product.view', ['product'=> $product,
-            'isEdit' => $this->isEdit,
-            'isDelete' => $this->isDelete
-        ]);
+            return view('product.view', [
+                'product' => $product,
+                'isEdit' => $this->isEdit,
+                'isDelete' => $this->isDelete
+            ]);
         }
         return redirect()->route('dashboard')->with('error', 'You do not have permission to view products.');
+    }
+    public function uploadProductImage(Request $request)
+    {
+        if ($this->isEdit) {
+            $request->validate([
+                'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            ]);
+
+            if ($request->hasFile('image')) {
+                $file = $request->file('image');
+                $imagePath = $file->store('products', 'public');
+                $url = Storage::url($imagePath);
+                $imgDetail = ProductImage::create([
+                    'product_id' => $request->product_id,
+                    'image_path' => $imagePath,
+                    'is_primary' => false,
+                ]);
+                return response()->json([
+                    'success' => true,
+                    'imageUrl' => $url,
+                    'imageId'=> $imgDetail->id
+                ]);
+            }
+
+            return response()->json(['success' => false, 'message' => 'Image upload failed']);
+        }
+
+        return response()->json(['success' => false, 'message' => 'You do not have permission to upload images.']);
+    }
+
+    public function uploadImage(Request $request)
+    {
+        if ($this->isEdit) {
+            if ($request->hasFile('image')) {
+                $file = $request->file('image');
+                $path = $file->store('public/images');
+                $url = Storage::url($path);
+
+                return response()->json(['success' => true, 'imageUrl' => $url]);
+            }
+            return response()->json(['success' => false]);
+        }
+        return redirect()->route('dashboard')->with('error', 'You do not have permission to upload images.');
+    }
+
+    private function getValidationRules(Request $request, $productId = null)
+    {
+        return [
+            'name' => 'required|string|max:255',
+            'slug' => [
+                'required',
+                'string',
+                'max:255',
+                function ($attribute, $value, $fail) use ($productId) {
+                    $query = Product::where('slug', $value);
+                    if ($productId) {
+                        $query->where('id', '!=', $productId);
+                    }
+                    if ($query->exists()) {
+                        $fail('This URL (slug) is already in use.');
+                    }
+                },
+            ],
+            'price' => 'required|numeric|min:0',
+            'sale_price' => [
+                'nullable',
+                'numeric',
+                'min:0',
+                function ($attribute, $value, $fail) use ($request) {
+                    if ($value !== null && $value <= 0) {
+                        $fail('Sale price must be greater than 0.');
+                    }
+                    if ($value !== null && $request->price && $value >= $request->price) {
+                        $fail('Sale price must be less than the regular price.');
+                    }
+                },
+            ],
+            'description' => 'required',
+            'images.*' => 'image|mimes:jpeg,png,jpg,gif',
+            'category_id' => 'required|array',
+            'category_id.*' => 'exists:categories,id',
+            'meta_title' => 'nullable|string|max:255',
+            'meta_description' => 'nullable|string',
+            'custom_box' => 'nullable',
+        ];
     }
 }
