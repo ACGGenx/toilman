@@ -58,6 +58,16 @@
         </a>
     </li>
     <li class="nav-item">
+        <a class="nav-link {{activeRoute(route('sliders.index'))}}" aria-current="page" href="{{route('sliders.index')}}">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="3" y="4" width="8" height="16" fill="currentColor" rx="2" opacity="0.8" />
+                    <rect x="7" y="4" width="8" height="16" fill="currentColor" rx="2" opacity="0.6" />
+                    <rect x="11" y="4" width="8" height="16" fill="currentColor" rx="2" opacity="0.4" />
+                </svg>
+            <span class="item-name">Sliders</span>
+        </a>
+    </li>
+    <li class="nav-item">
         <a class="nav-link {{activeRoute(route('enquiries.list'))}}" aria-current="page" href="{{route('enquiries.list')}}">
             <i class="icon">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -68,16 +78,6 @@
                 </svg>
             </i>
             <span class="item-name">Enqueries</span>
-        </a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link {{activeRoute(route('sliders.index'))}}" aria-current="page" href="{{route('sliders.index')}}">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="3" y="4" width="8" height="16" fill="currentColor" rx="2" opacity="0.8" />
-                    <rect x="7" y="4" width="8" height="16" fill="currentColor" rx="2" opacity="0.6" />
-                    <rect x="11" y="4" width="8" height="16" fill="currentColor" rx="2" opacity="0.4" />
-                </svg>
-            <span class="item-name">Sliders</span>
         </a>
     </li>
     <li class="nav-item">
@@ -144,6 +144,20 @@
         </a>
     </li>
     @endif
+    @if(isset(auth()->user()->getPermissions()[5]) && (auth()->user()->getPermissions()[1]->permission_value & (2)))
+    <li class="nav-item">
+        <a class="nav-link {{activeRoute(route('sliders.index'))}}" aria-current="page" href="{{route('sliders.index')}}">
+            <i class="icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="3" y="4" width="8" height="16" fill="currentColor" rx="2" opacity="0.8" />
+                    <rect x="7" y="4" width="8" height="16" fill="currentColor" rx="2" opacity="0.6" />
+                    <rect x="11" y="4" width="8" height="16" fill="currentColor" rx="2" opacity="0.4" />
+                </svg>
+            </i>
+            <span class="item-name">Sliders</span>
+        </a>
+    </li>
+    @endif
     @if(isset(auth()->user()->getPermissions()[1]) && (auth()->user()->getPermissions()[1]->permission_value & (2)))
     <li class="nav-item">
         <a class="nav-link {{activeRoute(route('enquiries.list'))}}" aria-current="page" href="{{route('enquiries.list')}}">
@@ -156,20 +170,6 @@
                 </svg>
             </i>
             <span class="item-name">Enqueries</span>
-        </a>
-    </li>
-    @endif
-    @if(isset(auth()->user()->getPermissions()[5]) && (auth()->user()->getPermissions()[1]->permission_value & (2)))
-    <li class="nav-item">
-        <a class="nav-link {{activeRoute(route('sliders.index'))}}" aria-current="page" href="{{route('sliders.index')}}">
-            <i class="icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="3" y="4" width="8" height="16" fill="currentColor" rx="2" opacity="0.8" />
-                    <rect x="7" y="4" width="8" height="16" fill="currentColor" rx="2" opacity="0.6" />
-                    <rect x="11" y="4" width="8" height="16" fill="currentColor" rx="2" opacity="0.4" />
-                </svg>
-            </i>
-            <span class="item-name">Sliders</span>
         </a>
     </li>
     @endif

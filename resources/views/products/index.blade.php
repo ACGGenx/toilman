@@ -25,11 +25,11 @@
                             <table id="basic-table" class="table table-striped mb-0" role="grid">
                                 <thead>
                                     <tr>
-                                        <th style="width: 10%;">Name</th>
-                                        <th style="width: 10%;">Category</th>
-                                        <th style="width: 40%;">Description</th>
+                                        <th style="width: 15%;">Name</th>
+                                        <th style="width: 40%;">Category</th>
+                                        <!-- <th style="width: 40%;">Description</th> -->
                                         <th style="width: 10%;">Price</th>
-                                        <th style="width: 15%;">Images</th>
+                                        <th style="width: 20%;">Images</th>
 
                                         @if($isEdit || $isDelete)
                                         <th style="width: 15%;" class="text-end">Action</th>
@@ -39,38 +39,66 @@
                                 <tbody>
                                     @foreach ($products as $product)
                                     <tr>
-                                        <!-- <td>{{ $product->name }}</td> -->
                                         <td>
-                                        <div class="d-flex align-items-center">
-        {{ $product->name }}
-        <a href="{{ route('products.show', $product->slug) }}" 
-           class="btn btn-info btn-sm ms-2 view-product-btn"
-           data-bs-toggle="tooltip" 
-           data-bs-placement="right"
-           title="{{ url('products/'.$product->slug) }}"
-           style="padding: 0.125rem 0.25rem;">
-            <span class="btn-inner">
-                <svg class="icon-20" width="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M15.7161 16.2234H8.49609" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                    <path d="M15.7161 12.0369H8.49609" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                    <path d="M11.2521 7.86011H8.49707" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                    <path fill-rule="evenodd" clip-rule="evenodd" d="M15.909 2.74976C15.909 2.74976 8.23198 2.75376 8.21998 2.75376C5.45998 2.77076 3.75098 4.58676 3.75098 7.35676V16.5528C3.75098 19.3368 5.47298 21.1598 8.25698 21.1598C8.25698 21.1598 15.933 21.1568 15.946 21.1568C18.706 21.1398 20.416 19.3228 20.416 16.5528V7.35676C20.416 4.57276 18.693 2.74976 15.909 2.74976Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                </svg>
-            </span>
-            <span class="ms-1">View</span>
-        </a>
-    </div>
+                                            <div class="d-flex align-items-center">
+                                                {{ $product->name }}
+                                                <a target="_blank" href="{{ route('products.show', $product->slug) }}"
+                                                    class="btn btn-info btn-sm ms-2 view-product-btn"
+                                                    data-bs-toggle="tooltip"
+                                                    data-bs-placement="right"
+                                                    title="{{ url('products/'.$product->slug) }}"
+                                                    style="padding: 0.125rem 0.25rem;">
+                                                    <span class="btn-inner">
+                                                        <svg class="icon-20" width="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                            <path d="M15.7161 16.2234H8.49609" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                                            <path d="M15.7161 12.0369H8.49609" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                                            <path d="M11.2521 7.86011H8.49707" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                                            <path fill-rule="evenodd" clip-rule="evenodd" d="M15.909 2.74976C15.909 2.74976 8.23198 2.75376 8.21998 2.75376C5.45998 2.77076 3.75098 4.58676 3.75098 7.35676V16.5528C3.75098 19.3368 5.47298 21.1598 8.25698 21.1598C8.25698 21.1598 15.933 21.1568 15.946 21.1568C18.706 21.1398 20.416 19.3228 20.416 16.5528V7.35676C20.416 4.57276 18.693 2.74976 15.909 2.74976Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                                        </svg>
+                                                    </span>
+                                                    <span class="ms-1">View</span>
+                                                </a>
+                                            </div>
 
-    <!-- Custom tooltip content -->
-    <div class="custom-tooltip" id="tooltip-{{ $product->id }}" style="display: none;">
-        {{ url('product/'.$product->slug) }}
-    </div>
-
-</td>
-                                        <td>{{ isset($product->category) ? $product->category->name : '' }}</td>
-                                        <td class="desc-text">
-                                            {!! \Illuminate\Support\Str::limit($product->description, 100, '...') !!}
+                                            <!-- Custom tooltip content -->
+                                            <div class="custom-tooltip" id="tooltip-{{ $product->id }}" style="display: none;">
+                                                {{ url('product/'.$product->slug) }}
+                                            </div>
                                         </td>
+                                        <td>
+                                            <div class="badge-container">
+                                                @php
+                                                $categories = $product->categories;
+                                                $totalCategories = $categories->count();
+                                                $displayCategories = $categories->take(5);
+                                                @endphp
+
+                                                @foreach($displayCategories as $category)
+                                                <span class="badge bg-primary">{{ $category->name }}</span>
+                                                @endforeach
+
+                                                @if($totalCategories > 5)
+
+                                                @if($isEdit)
+                                                <a href="{{ route('products.edit', $product->id) }}">
+                                                    <span class="badge bg-secondary" title="{{ $categories->skip(5)->pluck('name')->implode(', ') }}">
+                                                        +{{ $totalCategories - 5 }} more...
+                                                    </span></a>
+                                                @else
+                                                <span class="badge bg-secondary" title="{{ $categories->skip(5)->pluck('name')->implode(', ') }}">
+                                                    +{{ $totalCategories - 5 }} more...
+                                                </span>
+                                                @endif
+                                                @endif
+
+                                                @if($totalCategories === 0)
+                                                <span class="text-muted">No category</span>
+                                                @endif
+                                            </div>
+                                        </td>
+                                        <!-- <td class="desc-text">
+                                            {!! \Illuminate\Support\Str::limit($product->description, 100, '...') !!}
+                                        </td> -->
                                         <td>
                                             @if(isset($product->sale_price) && $product->sale_price < $product->price)
                                                 <span>{{ number_format($product->sale_price, 2) }}<sup>{{number_format((($product->price-$product->sale_price)/$product->price*100),0)}}% off</sup></span>
@@ -94,7 +122,7 @@
                                             @else
                                             <p>No Images</p>
 
-                                            
+
                                             @endif
                                         </td>
                                         <!-- <td>{{ $product->status ? 'Active' : 'Inactive' }} -->
@@ -118,7 +146,7 @@
                                             <a class="btn btn-sm btn-danger delete-category-btn" data-id="{{ $product->id }}"
                                                 data-bs-toggle="modal"
                                                 data-bs-target="#deleteModal" data-bs-toggle="tooltip" data-bs-placement="top" href="#" aria-label="Delete" data-bs-original-title="Delete" style="padding: 0.125rem 0.25rem;">
-                                                <span class="btn-inner">
+                                                <span class="btn-inner" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete">
                                                     <svg class="icon-20" width="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor">
                                                         <path d="M19.3248 9.46826C19.3248 9.46826 18.7818 16.2033 18.4668 19.0403C18.3168 20.3953 17.4798 21.1893 16.1088 21.2143C13.4998 21.2613 10.8878 21.2643 8.27979 21.2093C6.96079 21.1823 6.13779 20.3783 5.99079 19.0473C5.67379 16.1853 5.13379 9.46826 5.13379 9.46826" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
                                                         <path d="M20.708 6.23975H3.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -215,9 +243,9 @@
         $('#basic-table').addClass('b-1-g');
     }, 1000);
 
-   // Initialize Bootstrap tooltips
-   var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    // Initialize Bootstrap tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl, {
             template: '<div class="tooltip" role="tooltip"><div class="tooltip-inner bg-dark"></div></div>'
         })

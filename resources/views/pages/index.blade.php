@@ -24,9 +24,10 @@
                             <table id="basic-table" class="table table-striped mb-0" role="grid">
                                 <thead>
                                     <tr>
-                                        <th style="width: 10%;">Title</th>
-                                        <th style="width: 10%;">URL</th>
-                                        <th style="width: 40%;">Description</th>
+                                        <th style="width: 30%;">Title</th>
+                                        <th style="width: 50%;">URL</th>
+                                        <th style="width: 10%;">Is home page</th>
+                                        <!-- <th style="width: 40%;">Description</th> -->
                                         @if($isEdit || $isDelete)
                                         <th style="width: 10%;">Action</th>
                                         @endif
@@ -37,9 +38,17 @@
                                     <tr>
                                         <td>{{ $page->title }}</td>
                                         <td>{{ $page->url }}</td>
-                                        <td class="desc-text">
-                                            {!! \Illuminate\Support\Str::limit($page->description, 100, '...') !!}</td>
+                                        <!-- <td class="desc-text"> -->
+                                        <!-- {!! \Illuminate\Support\Str::limit($page->description, 100, '...') !!}</td> -->
 
+                                        <td>
+                                            <input type="checkbox"
+                                                {{ $page->is_default ? 'checked' : '' }}
+                                                name="is_default"
+                                                class="form-check-input default-page-checkbox"
+                                                onclick="toggleDefaultPage(this, {{ $page->id }})"
+                                                {{ $isEdit ? '' : 'disabled' }}>
+                                        </td>
                                         @if($isEdit || $isDelete)
                                         <td>
                                             @if($isEdit)
@@ -58,7 +67,7 @@
                                             <a class="btn btn-sm btn-danger delete-category-btn" data-id="{{ $page->id }}"
                                                 data-bs-toggle="modal"
                                                 data-bs-target="#deleteModal" data-bs-toggle="tooltip" data-bs-placement="top" href="#" aria-label="Delete" data-bs-original-title="Delete" style="padding: 0.125rem 0.25rem;">
-                                                <span class="btn-inner">
+                                                <span class="btn-inner" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete">
                                                     <svg class="icon-20" width="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor">
                                                         <path d="M19.3248 9.46826C19.3248 9.46826 18.7818 16.2033 18.4668 19.0403C18.3168 20.3953 17.4798 21.1893 16.1088 21.2143C13.4998 21.2613 10.8878 21.2643 8.27979 21.2093C6.96079 21.1823 6.13779 20.3783 5.99079 19.0473C5.67379 16.1853 5.13379 9.46826 5.13379 9.46826" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
                                                         <path d="M20.708 6.23975H3.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -152,4 +161,60 @@
         });
         $('#basic-table').addClass('b-1-g');
     }, 1000);
+
+    function toggleDefaultPage(element, pageId) {
+        // Prevent multiple simultaneous requests
+        if ($(element).data('processing')) {
+            return;
+        }
+
+        $(element).data('processing', true);
+
+        // Uncheck all other checkboxes first (visually)
+        if (element.checked) {
+            $('input[name="is_default"]').not(element).prop('checked', false);
+        }
+
+        $.ajax({
+            url: '/pages/set-default',
+            type: 'POST',
+            data: {
+                _token: '{{ csrf_token() }}',
+                page_id: pageId,
+                is_default: element.checked
+            },
+            success: function(response) {
+                if (response.success) {
+                    // Swal.fire({
+                    //     title: 'Success',
+                    //     text: response.message,
+                    //     icon: 'success',
+                    //     confirmButtonText: 'OK'
+                    // });
+                } else {
+                    // Revert the checkbox if the operation failed
+                    element.checked = !element.checked;
+                    Swal.fire({
+                        title: 'Error',
+                        text: response.message,
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            },
+            error: function(xhr) {
+                // Revert the checkbox on error
+                element.checked = !element.checked;
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Failed to update default page status',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            },
+            complete: function() {
+                $(element).data('processing', false);
+            }
+        });
+    }
 </script>

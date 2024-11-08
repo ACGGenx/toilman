@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\PageManagement;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+
 
 class PageManagementController extends Controller
 {
@@ -29,7 +31,8 @@ class PageManagementController extends Controller
     {
         if ($this->isView) {
             $pages = PageManagement::all();
-            return view('pages.index', ['pages'=> $pages,
+            return view('pages.index', [
+                'pages' => $pages,
                 'isEdit' => $this->isEdit,
                 'isDelete' => $this->isDelete
             ]);
@@ -56,6 +59,7 @@ class PageManagementController extends Controller
                 'description' => 'nullable|string',
                 'seo_tags' => 'nullable|string',
                 'url' => 'required|string|max:255',
+                'is_default' => 'boolean'
             ]);
 
             try {
@@ -63,15 +67,16 @@ class PageManagementController extends Controller
                 return redirect()->route('pages.index')
                     ->with('success', 'Page created successfully.');
             } catch (\Illuminate\Database\QueryException $e) {
-                // Handle duplicate entry or other database exceptions
-                if ($e->errorInfo[1] == 1062) {  // Error code for duplicate entry
-                    return redirect()->back()->withInput()->with('error', 'The URL must be unique. A page with the same URL already exists.');
+                if ($e->errorInfo[1] == 1062) {
+                    return redirect()->back()->withInput()
+                        ->with('error', 'The URL must be unique. A page with the same URL already exists.');
                 }
-
-                return redirect()->back()->withInput()->with('error', 'An error occurred while saving the page. Please try again.');
+                return redirect()->back()->withInput()
+                    ->with('error', 'An error occurred while saving the page. Please try again.');
             }
         }
-        return redirect()->route('dashboard')->with('error', 'You do not have permission to edit pages.');
+        return redirect()->route('dashboard')
+            ->with('error', 'You do not have permission to edit pages.');
     }
 
     // Show the form for editing the specified resource
@@ -92,21 +97,24 @@ class PageManagementController extends Controller
                 'description' => 'nullable|string',
                 'seo_tags' => 'nullable|string',
                 'url' => 'required|string|max:255',
+                'is_default' => 'boolean'
             ]);
+
             try {
                 $page->update($request->all());
                 return redirect()->route('pages.index')
                     ->with('success', 'Page updated successfully.');
             } catch (\Illuminate\Database\QueryException $e) {
-                // Handle duplicate entry or other database exceptions
-                if ($e->errorInfo[1] == 1062) {  // Error code for duplicate entry
-                    return redirect()->back()->withInput()->with('error', 'The URL must be unique. A page with the same URL already exists.');
+                if ($e->errorInfo[1] == 1062) {
+                    return redirect()->back()->withInput()
+                        ->with('error', 'The URL must be unique. A page with the same URL already exists.');
                 }
-
-                return redirect()->back()->withInput()->with('error', 'An error occurred while updating the page. Please try again.');
+                return redirect()->back()->withInput()
+                    ->with('error', 'An error occurred while updating the page. Please try again.');
             }
         }
-        return redirect()->route('dashboard')->with('error', 'You do not have permission to edit pages.');
+        return redirect()->route('dashboard')
+            ->with('error', 'You do not have permission to edit pages.');
     }
 
     // Remove the specified resource from storage
@@ -142,5 +150,39 @@ class PageManagementController extends Controller
             ]);
         }
         return redirect()->route('dashboard')->with('error', 'You do not have permission to delete pages.');
+    }
+    public function uploadImage(Request $request)
+    {
+        if ($request->hasFile('image')) {
+            $file = $request->file('image');
+            $path = $file->store('public/images'); // Save to storage/app/public/images
+            $url = Storage::url($path); // Get URL for the stored image
+
+            return response()->json(['success' => true, 'imageUrl' => $url]);
+        }
+
+        return response()->json(['success' => false]);
+    }
+
+    public function setDefault(Request $request)
+    {
+        if ($this->isEdit) {
+            $request->validate([
+                'page_id' => 'required|exists:page_management,id',
+            ]);
+
+            $page = PageManagement::findOrFail($request->input('page_id'));
+            $page->is_default = true;
+            $page->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Page has been set as default successfully!'
+            ]);
+        }
+        return response()->json([
+            'success' => false,
+            'message' => 'You do not have permission to set default page.'
+        ], 403);
     }
 }

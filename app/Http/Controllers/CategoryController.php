@@ -28,7 +28,10 @@ class CategoryController extends Controller
     public function index()
     {
         if ($this->isView) {
-            $categories = Category::with('parentCategory')->get();
+            // $categories = Category::with('parentCategory')->get();
+
+            $categories = $this->getCategoryHierarchy();
+            // dd($categories);
 
             // Pass controller properties to the view
             return view('categories.index', [
@@ -77,7 +80,9 @@ class CategoryController extends Controller
     {
         if ($this->isEdit) {
             $category = Category::findOrFail($id);
-            $categories = Category::all();
+            // $categories = Category::all();
+            $categories = $this->getCategoryHierarchy();
+            dd($categories);
             return view('categories.edit', compact('category', 'categories'));
         }
         return redirect()->route('dashboard')->with('error', 'You do not have permission to edit categories.');
@@ -163,5 +168,35 @@ class CategoryController extends Controller
             ]);
         }
         return redirect()->route('dashboard')->with('error', 'You do not have permission to edit categories.');
+    }
+
+    protected function getCategoryHierarchy($parentId = null, $prefix = '')
+    {
+        $categories = Category::where('parent_category_id', $parentId)
+            ->orderBy('name')
+            ->get();
+
+        $hierarchy = [];
+
+        foreach ($categories as $category) {
+            $category->name = $prefix . $category->name;
+            $hierarchy[] = $category;
+            $hierarchy = array_merge($hierarchy, $this->getCategoryHierarchy($category->id, $prefix));
+        }
+
+        return $hierarchy;
+    }
+
+    public function uploadImage(Request $request)
+    {
+        if ($request->hasFile('image')) {
+            $file = $request->file('image');
+            $path = $file->store('public/images'); // Save to storage/app/public/images
+            $url = Storage::url($path); // Get URL for the stored image
+
+            return response()->json(['success' => true, 'imageUrl' => $url]);
+        }
+
+        return response()->json(['success' => false]);
     }
 }

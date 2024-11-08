@@ -4,7 +4,7 @@
 
             <!-- Category Grid -->
             <div id="category-list">
-                @if($categories->isEmpty())
+                @if(!isset($categories))
                 <p>No items found</p>
                 @else
                 <div class="card">
@@ -28,7 +28,7 @@
                                         <th style="width: 10%;">Name</th>
                                         <th style="width: 10%;">Parent Category</th>
                                         <!-- <th style="width: 10%;">Slug</th> -->
-                                        <th style="width: 50%;">Description</th>
+                                        <!-- <th style="width: 50%;">Description</th> -->
                                         <th style="width: 10%;">Image</th>
 
                                         @if($isEdit || $isDelete)
@@ -42,7 +42,7 @@
                                         <td>{{ $category->name }}</td>
                                         <td>{{ $category->parentCategory ? $category->parentCategory->name : 'Root' }}</td>
                                         <!-- <td>{{ $category->slug }}</td> -->
-                                        <td class="desc-text">{!! \Illuminate\Support\Str::limit($category->description, 50, '...') !!}</td>
+                                        <!-- <td class="desc-text">{!! \Illuminate\Support\Str::limit($category->description, 50, '...') !!}</td> -->
                                         <td>
                                             @if($category->image)
                                             <div class="image-stack">
@@ -86,7 +86,7 @@
                                             <a class="btn btn-sm btn-danger delete-category-btn" data-id="{{ $category->id }}"
                                                 data-bs-toggle="modal"
                                                 data-bs-target="#deleteModal" data-bs-toggle="tooltip" data-bs-placement="top" href="#" aria-label="Delete" data-bs-original-title="Delete" style="padding: 0.125rem 0.25rem;">
-                                                <span class="btn-inner">
+                                                <span class="btn-inner" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete">
                                                     <svg class="icon-20" width="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor">
                                                         <path d="M19.3248 9.46826C19.3248 9.46826 18.7818 16.2033 18.4668 19.0403C18.3168 20.3953 17.4798 21.1893 16.1088 21.2143C13.4998 21.2613 10.8878 21.2643 8.27979 21.2093C6.96079 21.1823 6.13779 20.3783 5.99079 19.0473C5.67379 16.1853 5.13379 9.46826 5.13379 9.46826" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
                                                         <path d="M20.708 6.23975H3.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -126,10 +126,12 @@
                                 </div>
                                 <div class="form-group col-12 col-md-6">
                                     <label for="parent_category_id">Parent Category</label>
-                                    <select name="parent_category_id" id="parent_category_id" class="form-control">
-                                        <option value="">Root</option>
+                                    <select name="parent_category_id" id="parent_category_id" class="form-control select2">
+                                        <option value="" data-level="0">Root</option>
                                         @foreach($categories as $parentCategory)
-                                        <option value="{{ $parentCategory->id }}">{{ $parentCategory->name }}</option>
+                                        <option value="{{ $parentCategory->id }}" data-level="{{ $parentCategory->parent_category_id ? 1 : 0 }}">
+                                            {{ $parentCategory->name }}
+                                        </option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -148,19 +150,19 @@
                                     <input type="text" class="form-control" name="slug" id="slug">
                                     <span id="url-error-message" style="color: red; display: none;">This Slug already exists!</span>
                                 </div>
-                                <div class="form-group col-12 col-md-12">
-                                    <label for="meta_title">Meta Title</label>
-                                    <input type="text" class="form-control" name="meta_title" id="meta_title">
-                                </div>
-                                <div class="form-group col-12 col-md-12">
-                                    <label for="meta_description">Meta Description</label>
-                                    <textarea class="form-control" name="meta_description" id="meta_description"></textarea>
-                                </div>
                             </div>
                             <div class="form-group">
                                 <label for="description">Description</label>
-                                <div id="description-editor" style="height: 200px;"></div>
+                                <div id="description-editor" style="min-height: 200px;"></div>
                                 <input type="hidden" name="description" id="description">
+                            </div>
+                            <div class="form-group col-12 col-md-12">
+                                <label for="meta_title">Meta Title</label>
+                                <input type="text" class="form-control" name="meta_title" id="meta_title">
+                            </div>
+                            <div class="form-group col-12 col-md-12">
+                                <label for="meta_description">Meta Description</label>
+                                <textarea class="form-control" name="meta_description" id="meta_description"></textarea>
                             </div>
                             <button type="submit" class="btn btn-success" id="save-btn">Save</button>
                             <button type="button" class="btn btn-secondary" id="cancel-btn">Cancel</button>
@@ -194,12 +196,55 @@
         </div>
 
 </x-app-layout>
-
+<script src="{{ asset('js/image-resize.min.js') }}"></script>
 <script>
     let isValidSlug = true;
+    var quill;
+    $(document).ready(function() {
+        $('.select2').select2({
+            width: '100%',
+            templateResult: formatState,
+            templateSelection: formatState
+        });
+
+        function formatState(option) {
+            if (!option.id) return option.text;
+            let $option = $(option.element);
+            let level = $option.data('level');
+            let indent = '&nbsp;'.repeat(level * 2); // Adjust multiplier for more/less indentation
+            return $('<span>' + indent + option.text + '</span>');
+        }
+    });
     document.addEventListener('DOMContentLoaded', function() {
-        var quill = new Quill('#description-editor', {
-            theme: 'snow'
+        quill = new Quill('#description-editor', {
+            theme: 'snow',
+            modules: {
+                imageResize: {
+                    displaySize: true
+                },
+                toolbar: {
+                    container: [
+                        [{
+                            'header': [1, 2, 3, 4, 5, 6, false]
+                        }],
+                        ['bold', 'italic', 'underline', 'strike'],
+                        [{
+                            'color': []
+                        }, {
+                            'background': []
+                        }],
+                        [{
+                            'align': []
+                        }],
+                        ['link', 'image'],
+
+                        ['clean']
+                    ],
+                    handlers: {
+                        image: imageHandler
+                    }
+                }
+            }
         });
 
         // Clear the editor and reset the form when adding a new category
@@ -384,4 +429,44 @@
         // Submit the form programmatically
         document.getElementById('product-form-element').submit();
     });
+
+    function imageHandler() {
+        let input = document.createElement('input');
+        input.setAttribute('type', 'file');
+        input.setAttribute('accept', 'image/*');
+        input.click();
+
+        input.onchange = () => {
+            let file = input.files[0];
+            if (/^image\//.test(file.type)) {
+                saveImageToServer(file);
+            } else {
+                alert('You can only upload images.');
+            }
+        };
+    }
+
+    function saveImageToServer(file) {
+        let formData = new FormData();
+        formData.append('image', file);
+        formData.append('_token', '{{ csrf_token() }}');
+
+        // Perform an AJAX request to upload the image
+        fetch('/categories/upload-image', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    let range = quill.getSelection();
+                    quill.insertEmbed(range.index, 'image', result.imageUrl);
+                } else {
+                    console.error('Failed to upload image');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    }
 </script>
