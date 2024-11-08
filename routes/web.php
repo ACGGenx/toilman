@@ -32,6 +32,13 @@ Route::get('/storage', function () {
     Artisan::call('storage:link');
 });
 
+// Temporary route for design preview - REMOVE THIS IN PRODUCTION
+Route::get('/product/{slug}', [ProductController::class, 'show'])
+    ->name('product.show')
+    ->where('slug', '[a-z0-9-]+');
+    // ->middleware(['auth', 'prevent-back-history']);
+ 
+
 //UI Pages Routs
 Route::get('/', [HomeController::class, 'signin'])
     ->name('auth.signin')
@@ -81,7 +88,10 @@ Route::get('/enquiry', [EnquiryController::class, 'index'])->name('enquiries.ind
 Route::get('/enquiry-bulk', [EnquiryController::class, 'showBulkEnquiryForm'])->name('enquiries.bulk');
 Route::post('/enquiry/submit', [EnquiryController::class, 'submitEnquiry'])->name('enquiry.submit');
 Route::post('/enquiry/submit-bulk', [EnquiryController::class, 'submitBulkEnquiry'])->name('enquiry.submit-bulk');
-Route::get('/product/{slug}', [ProductController::class, 'show'])->name('products.show');
+// Route::get('/product/{slug}', [ProductController::class, 'show'])->name('products.show');
 Route::get('privacy-policy', [HomeController::class, 'privacypolicy'])->name('pages.privacy-policy');
 Route::get('terms-of-use', [HomeController::class, 'termsofuse'])->name('pages.term-of-use');
 
+// Category product listing routes
+Route::get('/category/{slug?}', [CategoryController::class, 'showProducts'])->name('category.products');
+Route::post('/category/filter', [CategoryController::class, 'filterProducts'])->name('category.filter');

@@ -39,7 +39,34 @@
                                 <tbody>
                                     @foreach ($products as $product)
                                     <tr>
-                                        <td>{{ $product->name }}</td>
+                                        <!-- <td>{{ $product->name }}</td> -->
+                                        <td>
+                                        <div class="d-flex align-items-center">
+        {{ $product->name }}
+        <a href="{{ route('products.show', $product->slug) }}" 
+           class="btn btn-info btn-sm ms-2 view-product-btn"
+           data-bs-toggle="tooltip" 
+           data-bs-placement="right"
+           title="{{ url('products/'.$product->slug) }}"
+           style="padding: 0.125rem 0.25rem;">
+            <span class="btn-inner">
+                <svg class="icon-20" width="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M15.7161 16.2234H8.49609" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <path d="M15.7161 12.0369H8.49609" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <path d="M11.2521 7.86011H8.49707" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M15.909 2.74976C15.909 2.74976 8.23198 2.75376 8.21998 2.75376C5.45998 2.77076 3.75098 4.58676 3.75098 7.35676V16.5528C3.75098 19.3368 5.47298 21.1598 8.25698 21.1598C8.25698 21.1598 15.933 21.1568 15.946 21.1568C18.706 21.1398 20.416 19.3228 20.416 16.5528V7.35676C20.416 4.57276 18.693 2.74976 15.909 2.74976Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+            </span>
+            <span class="ms-1">View</span>
+        </a>
+    </div>
+
+    <!-- Custom tooltip content -->
+    <div class="custom-tooltip" id="tooltip-{{ $product->id }}" style="display: none;">
+        {{ url('product/'.$product->slug) }}
+    </div>
+
+</td>
                                         <td>{{ isset($product->category) ? $product->category->name : '' }}</td>
                                         <td class="desc-text">
                                             {!! \Illuminate\Support\Str::limit($product->description, 100, '...') !!}
@@ -66,6 +93,8 @@
                                             </div>
                                             @else
                                             <p>No Images</p>
+
+                                            
                                             @endif
                                         </td>
                                         <!-- <td>{{ $product->status ? 'Active' : 'Inactive' }} -->
@@ -185,4 +214,31 @@
         });
         $('#basic-table').addClass('b-1-g');
     }, 1000);
+
+   // Initialize Bootstrap tooltips
+   var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl, {
+            template: '<div class="tooltip" role="tooltip"><div class="tooltip-inner bg-dark"></div></div>'
+        })
+    });
+
+    // Custom hover effect for showing URL
+    document.querySelectorAll('.view-product-btn').forEach(button => {
+        let timeout;
+        button.addEventListener('mouseenter', function() {
+            const productId = this.closest('tr').getAttribute('data-product-id');
+            const tooltip = document.querySelector(`#tooltip-${productId}`);
+            clearTimeout(timeout);
+            tooltip.style.display = 'block';
+            setTimeout(() => tooltip.style.opacity = '1', 10);
+        });
+
+        button.addEventListener('mouseleave', function() {
+            const productId = this.closest('tr').getAttribute('data-product-id');
+            const tooltip = document.querySelector(`#tooltip-${productId}`);
+            tooltip.style.opacity = '0';
+            timeout = setTimeout(() => tooltip.style.display = 'none', 300);
+        });
+    });
 </script>

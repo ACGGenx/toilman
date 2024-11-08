@@ -1,5 +1,6 @@
 <?php
 
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -28,7 +29,7 @@ class Product extends Model
 
     public function images()
     {
-        return $this->hasMany(ProductImage::class);
+        return $this->hasMany(ProductImage::class)->orderBy('is_primary', 'desc');
     }
 
     public function category()
@@ -40,4 +41,25 @@ class Product extends Model
     {
         return $this->belongsToMany(Product::class, 'product_similar', 'product_id', 'similar_product_id');
     }
+
+    public function getDiscountPercentageAttribute()
+{
+    if ($this->sale_price && $this->price > 0) {
+        return round((($this->price - $this->sale_price) / $this->price) * 100);
+    }
+    return 0;
+}
+
+public function getCurrentPriceAttribute()
+{
+    return $this->sale_price && $this->sale_price < $this->price 
+        ? $this->sale_price 
+        : $this->price;
+}
+
+public function hasDiscount()
+{
+    return $this->sale_price && $this->sale_price < $this->price;
+}
+    
 }

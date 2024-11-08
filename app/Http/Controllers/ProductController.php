@@ -294,16 +294,59 @@ class ProductController extends Controller
     public function show($slug)
     {
         if ($this->isView) {
-            $product = Product::where('slug', $slug)
-                ->where('status', 1)  // Assuming 1 means active
-                ->with('images')  // Assuming you have an images relationship
-                ->firstOrFail();
-
-            return view('product.view', ['product'=> $product,
-            'isEdit' => $this->isEdit,
-            'isDelete' => $this->isDelete
-        ]);
+            try {
+                // First get the product
+                $product = Product::with(['category', 'similarProducts'])
+                    ->where('slug', $slug)
+                    ->where('status', 1)
+                    ->firstOrFail();
+    
+                // Fetch images separately and order by is_primary
+                $product->images = ProductImage::where('product_id', $product->id)
+                    ->orderBy('is_primary', 'desc')
+                    ->get();
+    
+                // Get related products
+                $relatedProducts = Product::where('category_id', $product->category_id)
+                    ->where('id', '!=', $product->id)
+                    ->where('status', 1)
+                    ->take(3)
+                    ->get();
+    
+                // Fetch images for related products
+                foreach ($relatedProducts as $relatedProduct) {
+                    $relatedProduct->images = ProductImage::where('product_id', $relatedProduct->id)
+                        ->orderBy('is_primary', 'desc')
+                        ->get();
+                }
+    
+                // Debug information
+                \Log::info('Product Images:', [
+                    'product_id' => $product->id,
+                    'image_count' => $product->images->count(),
+                    'images' => $product->images->pluck('image_path')->toArray()
+                ]);
+    
+                return view('product.details', compact('product', 'relatedProducts'));
+    
+            } catch (\Exception $e) {
+                \Log::error('Error in show method: ' . $e->getMessage());
+                return back()->with('error', 'Unable to display product details.');
+            }
         }
-        return redirect()->route('dashboard')->with('error', 'You do not have permission to view products.');
+        return redirect()->route('dashboard')
+            ->with('error', 'You do not have permission to view products.');
+        // if ($this->isView) {
+        //     $product = Product::where('slug', $slug)
+        //         ->where('status', 1)  // Assuming 1 means active
+        //         ->with('images')  // Assuming you have an images relationship
+        //         ->firstOrFail();
+
+        //     return view('product.view', ['product'=> $product,
+        //     'isEdit' => $this->isEdit,
+        //     'isDelete' => $this->isDelete
+        // ]);
+        // }
+        // return redirect()->route('dashboard')->with('error', 'You do not have permission to view products.');
     }
 }
