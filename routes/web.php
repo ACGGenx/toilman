@@ -46,6 +46,12 @@ Route::group(['prefix' => 'auth'], function () {
         ->middleware('guest');
 });
 
+// Place these routes outside the auth middleware group
+Route::get('/shop', [CategoryController::class, 'viewAllProducts'])->name('shop.index');
+Route::get('/shop/category/{slug?}', [CategoryController::class, 'viewCategoryProducts'])->name('shop.category');
+Route::post('/shop/filter', [CategoryController::class, 'filterProducts'])->name('shop.filter');
+
+
 Route::group(['middleware' => ['auth', 'prevent-back-history']], function () {
     // Permission Module
     Route::get('/role-permission', [RolePermission::class, 'index'])->name('role.permission.list');
@@ -96,3 +102,4 @@ Route::post('/enquiry/submit-bulk', [EnquiryController::class, 'submitBulkEnquir
 // Route::get('/product/{slug}', [ProductController::class, 'show'])->name('products.show');
 Route::get('privacy-policy', [HomeController::class, 'privacypolicy'])->name('pages.privacy-policy');
 Route::get('terms-of-use', [HomeController::class, 'termsofuse'])->name('pages.term-of-use');
+

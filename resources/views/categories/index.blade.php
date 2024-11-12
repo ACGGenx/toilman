@@ -15,6 +15,9 @@
                             </div>
                             <div class="col-md-6 text-end">
                                 @if($isEdit)
+                                <a href="{{ route('shop.index') }}" class="btn btn-info me-2">
+            <i class="fas fa-shopping-cart"></i> View All Products
+        </a>
                                 <button class="btn btn-primary" id="add-category-btn">Add Category</button>
                                 @endif
                             </div>
@@ -63,7 +66,27 @@
                                             &nbsp;
                                             <!-- Delete Button -->
                                             @if($isEdit)
-                                            <input {{$category->status ? 'checked' : ''}} class="toggle product-status  " type="checkbox" data-bs-toggle="tooltip" data-bs-placement="top" aria-label="Status" data-bs-original-title="Status" data-id="{{ $category->id }}" onclick="toggleStatus(this, {{ $category->id }})">
+                                            <input {{$category->status ? 'checked' : ''}} 
+               class="toggle product-status" 
+               type="checkbox" 
+               data-bs-toggle="tooltip" 
+               data-bs-placement="top" 
+               aria-label="Status" 
+               data-bs-original-title="Status" 
+               data-id="{{ $category->id }}" 
+               onclick="toggleStatus(this, {{ $category->id }})">
+
+                                                    <!-- Add View Products Button -->
+        <a href="{{ route('shop.category', $category->slug) }}" 
+           class="btn btn-sm btn-icon btn-info" 
+           data-bs-toggle="tooltip" 
+           data-bs-placement="top" 
+           data-bs-original-title="View Products">
+           <span class="btn-inner">
+                <i class="fas fa-eye"></i>
+            </span>
+        </a>
+
                                             <a href="#" class="btn btn-sm btn-icon btn-warning edit-category-btn" data-bs-toggle="tooltip" data-bs-placement="top" data-original-title="Edit" href="#" aria-label="Edit" data-bs-original-title="Edit"
                                                 data-id="{{ $category->id }}"
                                                 data-name="{{ $category->name }}"

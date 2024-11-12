@@ -20,6 +20,15 @@ class Category extends Model
         'image',
     ];
 
+
+        // Add products relationship
+        public function products()
+        {
+            return $this->belongsToMany(Product::class)
+                        ->where('status', 1)
+                        ->withTimestamps();
+        }
+
     public function parentCategory()
     {
         return $this->belongsTo(Category::class, 'parent_category_id');

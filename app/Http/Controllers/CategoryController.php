@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Category;
 use Illuminate\Support\Facades\Storage;
+use App\Models\Product;
 
 class CategoryController extends Controller
 {
@@ -199,4 +200,137 @@ class CategoryController extends Controller
 
         return response()->json(['success' => false]);
     }
+    // Category-product 
+    public function viewAllProducts()
+    {
+        if ($this->isView) {
+            try {
+                // Get all active categories for the sidebar
+                $categories = Category::where('status', 1)->get();
+    
+                // Get products with their primary images using eager loading
+                $products = Product::with(['images' => function($query) {
+                    $query->where(function($q) {
+                        $q->where('is_primary', true)
+                          ->orWhereIn('id', function($subQuery) {
+                              $subQuery->selectRaw('MIN(id)')
+                                     ->from('product_images')
+                                     ->groupBy('product_id');
+                          });
+                    });
+                }])
+                ->where('status', 1)
+                ->paginate(9);
+
+                // Ensure each product has an images collection, even if empty
+                $products->each(function($product) {
+                    if (!$product->relationLoaded('images')) {
+                        $product->setRelation('images', collect());
+                    }
+                });
+    
+                return view('categories.all-products', compact('categories', 'products'));
+    
+            } catch (\Exception $e) {
+                \Log::error('Error viewing all products: ' . $e->getMessage());
+                return back()->with('error', 'Unable to display products.');
+            }
+        }
+        return redirect()->route('dashboard')->with('error', 'You do not have permission to view products.');
+    }
+
+    public function viewCategoryProducts($slug)
+    {
+        if ($this->isView) {
+            try {
+                // Get the current category
+                $category = Category::where('slug', $slug)
+                    ->where('status', 1)
+                    ->firstOrFail();
+    
+                // Get products for this category with their primary images
+                $products = Product::with(['images' => function($query) {
+                    $query->where(function($q) {
+                        $q->where('is_primary', true)
+                          ->orWhereIn('id', function($subQuery) {
+                              $subQuery->selectRaw('MIN(id)')
+                                     ->from('product_images')
+                                     ->groupBy('product_id');
+                          });
+                    });
+                }])
+                ->whereHas('categories', function($query) use ($category) {
+                    $query->where('categories.id', $category->id);
+                })
+                ->where('status', 1)
+                ->paginate(12);
+
+                // Ensure each product has an images collection, even if empty
+                $products->each(function($product) {
+                    if (!$product->relationLoaded('images')) {
+                        $product->setRelation('images', collect());
+                    }
+                });
+    
+                // Get all active categories for sidebar
+                $categories = Category::where('status', 1)
+                    ->orderBy('name')
+                    ->get();
+    
+                return view('categories.products', compact('category', 'categories', 'products'));
+    
+            } catch (\Exception $e) {
+                \Log::error('Error in viewCategoryProducts: ' . $e->getMessage());
+                return back()->with('error', 'Unable to display category products.');
+            }
+        }
+        return redirect()->route('dashboard')->with('error', 'You do not have permission to view products.');
+    }
+
+    public function filterProducts(Request $request)
+    {
+        if ($this->isView) {
+            try {
+                $query = Product::with(['images' => function($query) {
+                    $query->where(function($q) {
+                        $q->where('is_primary', true)
+                          ->orWhereIn('id', function($subQuery) {
+                              $subQuery->selectRaw('MIN(id)')
+                                     ->from('product_images')
+                                     ->groupBy('product_id');
+                          });
+                    });
+                }])
+                ->where('status', 1);
+    
+                if ($request->filled('categories')) {
+                    $query->whereHas('categories', function($query) use ($request) {
+                        $query->whereIn('categories.id', $request->categories);
+                    });
+                }
+    
+                $products = $query->paginate(9);
+
+                // Ensure each product has an images collection, even if empty
+                $products->each(function($product) {
+                    if (!$product->relationLoaded('images')) {
+                        $product->setRelation('images', collect());
+                    }
+                });
+    
+                return response()->json([
+                    'success' => true,
+                    'html' => view('categories.partials.product-grid', compact('products'))->render(),
+                    'pagination' => $products->links()->render()
+                ]);
+    
+            } catch (\Exception $e) {
+                \Log::error('Error filtering products: ' . $e->getMessage());
+                return response()->json(['error' => 'Unable to filter products'], 500);
+            }
+        }
+        return response()->json(['error' => 'Unauthorized'], 403);
+    }
 }
+
+
