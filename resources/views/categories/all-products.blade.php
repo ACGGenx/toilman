@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-guest-layout>
     <div class="container-fluid py-4">
         <div class="row">
             <!-- Sidebar Filter -->
@@ -88,4 +88,4 @@
         }
     </script>
     @endpush
-</x-app-layout>
+</x-guest-layout>

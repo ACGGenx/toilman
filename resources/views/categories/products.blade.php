@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-guest-layout>
     <div class="container-fluid py-4">
         <div class="row">
             <div class="col-md-12">
@@ -163,4 +163,4 @@
             border-color: #dee2e6;
         }
     </style>
-</x-app-layout>
+</x-guest-layout>
