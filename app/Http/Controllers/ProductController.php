@@ -140,6 +140,8 @@ class ProductController extends Controller
     public function update(Request $request, Product $product)
     {
         if ($this->isEdit) {
+            try{
+            DB::beginTransaction();
             $validatedData = $request->validate($this->getValidationRules($request, $product->id));
             $slug = Str::slug($request->name);
 
@@ -161,16 +163,18 @@ class ProductController extends Controller
             $product->categories()->sync($request->category_id);
 
             // Handle image upload
-            // if ($request->hasFile('images')) {
-            //     foreach ($request->file('images') as $image) {
-            //         $imagePath = $image->store('products', 'public');
-            //         ProductImage::create([
-            //             'product_id' => $product->id,
-            //             'image_path' => $imagePath,
-            //             'is_primary' => false,
-            //         ]);
-            //     }
-            // }
+            if ($request->hasFile('images')) {
+                $isFirstImage = !$product->images()->exists();
+                foreach ($request->file('images') as $image) {
+                    $imagePath = $image->store('products', 'public');
+                    ProductImage::create([
+                        'product_id' => $product->id,
+                        'image_path' => $imagePath,
+                        'is_primary' => $isFirstImage,
+                    ]);
+                    $isFirstImage = false;
+                }
+            }
 
             if ($request->filled('primary_image_id')) {
                 ProductImage::where('product_id', $product->id)
@@ -184,8 +188,15 @@ class ProductController extends Controller
             if ($request->similar_products) {
                 $product->similarProducts()->sync($request->similar_products);
             }
+            DB::commit();
 
             return redirect()->route('products.index')->with('success', 'Product updated successfully');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Product update error: ' . $e->getMessage());
+            return back()->with('error', 'Error updating product: ' . $e->getMessage())
+                        ->withInput();
+        }
         }
         return redirect()->route('dashboard')->with('error', 'You do not have permission to edit products.');
     }
@@ -336,30 +347,47 @@ class ProductController extends Controller
     public function uploadProductImage(Request $request)
     {
         if ($this->isEdit) {
-            $request->validate([
-                'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
-            ]);
-
-            if ($request->hasFile('image')) {
-                $file = $request->file('image');
-                $imagePath = $file->store('products', 'public');
-                $url = Storage::url($imagePath);
-                $imgDetail = ProductImage::create([
-                    'product_id' => $request->product_id,
-                    'image_path' => $imagePath,
-                    'is_primary' => false,
+            try {
+                $request->validate([
+                    'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+                    'product_id' => 'required|exists:products,id'
                 ]);
+    
+                if ($request->hasFile('image')) {
+                    $file = $request->file('image');
+                    $imagePath = $file->store('products', 'public');
+                    
+                    $imgDetail = ProductImage::create([
+                        'product_id' => $request->product_id,
+                        'image_path' => $imagePath,
+                        'is_primary' => false,
+                    ]);
+    
+                    return response()->json([
+                        'success' => true,
+                        'imageUrl' => Storage::url($imagePath),
+                        'imageId' => $imgDetail->id
+                    ]);
+                }
+    
                 return response()->json([
-                    'success' => true,
-                    'imageUrl' => $url,
-                    'imageId' => $imgDetail->id
-                ]);
+                    'success' => false, 
+                    'message' => 'Image upload failed'
+                ], 400);
+    
+            } catch (\Exception $e) {
+                \Log::error('Upload product image error: ' . $e->getMessage());
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error uploading image: ' . $e->getMessage()
+                ], 500);
             }
-
-            return response()->json(['success' => false, 'message' => 'Image upload failed']);
         }
-
-        return response()->json(['success' => false, 'message' => 'You do not have permission to upload images.']);
+    
+        return response()->json([
+            'success' => false, 
+            'message' => 'Permission denied'
+        ], 403);
     }
 
     public function uploadImage(Request $request)

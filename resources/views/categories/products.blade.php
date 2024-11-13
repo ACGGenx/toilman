@@ -7,6 +7,8 @@
                         <div class="row align-items-center">
                             <div class="col-md-6">
                                 <h4 class="card-title">{{ $category->name }}</h4>
+
+                                <h6 class="card-description">{!! $category->description !!} </h6>
                             </div>
                             <div class="col-md-6 text-end">
                                 <a href="{{ route('shop.index') }}" class="btn btn-info me-2">
